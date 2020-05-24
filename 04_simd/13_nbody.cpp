@@ -27,7 +27,6 @@ int main() {
     fx[i] = fy[i] = 0;
   }
 
-
   for (int i = 0; i < N; i++) {
     __m256 xvec = _mm256_load_ps(x);
     __m256 yvec = _mm256_load_ps(y);
