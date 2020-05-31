@@ -180,9 +180,6 @@ struct block_loader<
     /// Input pointer to matrix in ldg_vector_t
     ldg_vector_t *d_matrix_ldgvecs;
 
-    /// Extent of the input matrix in ldg_vector_t along the L-axis
-    // int matrix_ldgvecs_l;
-
     /// Thread block's ending ldg_vector_t coordinate (k) within the input matrix (one-past)
     int block_end_ldgvec_k;
 
@@ -216,7 +213,6 @@ struct block_loader<
     inline __device__
     block_loader(
         value_t *d_matrix_items,        ///< Input pointer to matrix in value_t
-        int matrix_items_l,             ///< Extent of the input matrix in value_t along the L-axis
         int matrix_items_stride_k,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the K-axis
         int matrix_items_stride_l,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the L-axis
         int2 matrix_block_item_coords,  ///< value_t coordinates (l, k) of first block-wide tile within the input matrix
@@ -226,7 +222,6 @@ struct block_loader<
         guard(0),
         residue_guard(0)
     {
-        // matrix_ldgvecs_l = matrix_items_l;
         matrix_ldgvec_stride_k = matrix_items_stride_k;
         matrix_ldgvec_stride_l = (matrix_items_stride_l / LdgVectorItems);
 

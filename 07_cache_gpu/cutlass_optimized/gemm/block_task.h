@@ -341,7 +341,6 @@ struct block_task
 
         loader_a(
             d_a,                                                            // d_matrix
-            dim_m,                                                          // matrix_values_l
             dim_m,
             1,
             make_int2(                                                      // block_begin_item_coords
@@ -351,7 +350,6 @@ struct block_task
 
         loader_b(
             d_b,                                                            // d_matrix
-            dim_n,
             1,
             dim_k,
             make_int2(                                                      // block_begin_item_coords
