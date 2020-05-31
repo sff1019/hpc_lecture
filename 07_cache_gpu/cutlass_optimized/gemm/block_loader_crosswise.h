@@ -181,7 +181,7 @@ struct block_loader<
     ldg_vector_t *d_matrix_ldgvecs;
 
     /// Extent of the input matrix in ldg_vector_t along the L-axis
-    int matrix_ldgvecs_l;
+    // int matrix_ldgvecs_l;
 
     /// Thread block's ending ldg_vector_t coordinate (k) within the input matrix (one-past)
     int block_end_ldgvec_k;
@@ -226,7 +226,7 @@ struct block_loader<
         guard(0),
         residue_guard(0)
     {
-        matrix_ldgvecs_l = matrix_items_l;
+        // matrix_ldgvecs_l = matrix_items_l;
         matrix_ldgvec_stride_k = matrix_items_stride_k;
         matrix_ldgvec_stride_l = (matrix_items_stride_l / LdgVectorItems);
 

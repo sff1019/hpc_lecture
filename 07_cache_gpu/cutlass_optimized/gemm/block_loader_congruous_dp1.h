@@ -180,9 +180,6 @@ struct block_loader<
     /// Input pointer to matrix in ldg_vector_t
     ldg_vector_t *d_matrix_ldgvecs;
 
-    /// Extent of the input matrix in ldg_vector_t along the L-axis
-    int matrix_ldgvecs_l;
-
     /// Thread block's ending ldg_vector_t coordinate (k) within the input matrix (one-past)
     int block_end_ldgvec_k;
 
@@ -226,7 +223,6 @@ struct block_loader<
         guard(0),
         residue_guard(0)
     {
-        matrix_ldgvecs_l = matrix_items_l / LdgVectorItems;
         matrix_ldgvec_stride_k = matrix_items_stride_k / LdgVectorItems,
         matrix_ldgvec_stride_l = matrix_items_stride_l;
 
@@ -311,8 +307,6 @@ struct block_loader<
     void commit(
         dp_vector_t (&scratch_tile)[BlockDpVectorsK][SmemDpVectorsL])
     {
-        static_assert(SmemDpVectorsL >= BlockDpVectorsL, "Row stride must be >= tile width.");
-
         // Outer thread-tile ldg_vector_t iteration (K-axis)
         #pragma unroll
         for (int thread_ldgvec_k = 0; thread_ldgvec_k < ThreadLdgVectorsK; ++thread_ldgvec_k)
