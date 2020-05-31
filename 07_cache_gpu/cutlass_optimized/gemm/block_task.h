@@ -45,7 +45,6 @@ namespace cutlass {
 namespace gemm {
 
 template <
-    typename                    accum_t,                ///< Accumulator value type (matrix C and scalars)
     int                         LdgAlignA,              ///< Alignment (in bytes) for A operand
     int                         LdgAlignB,              ///< Alignment (in bytes) for B operand
     int                         LdgAlignC              ///< Alignment (in bytes) for C operand
@@ -72,7 +71,7 @@ struct block_task
     typedef thread_accumulator<
             ThreadItemsY,
             ThreadItemsX,
-            accum_t>
+            float>
         thread_accumulator_t;
 
     /// Dot-product vector type along the K-axis (e.g, uchar4 when using IDP4A)
@@ -83,10 +82,10 @@ struct block_task
         /// Number of float in dp_vector_t
         DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(float)>::value,
 
-        /// Extent of block-wide C-tile in accum_t (and A-tiles in float) along M-axis (height)
+        /// Extent of block-wide C-tile in float (and A-tiles in float) along M-axis (height)
         BlockItemsY = 64,
 
-        /// Extent of block-wide C-tile in accum_t (and B-tiles in float) along N-axis (width)
+        /// Extent of block-wide C-tile in float (and B-tiles in float) along N-axis (width)
         BlockItemsX = 64,
 
         /// Extent of block-wide A|B tiles in float along the K-axis
@@ -98,12 +97,12 @@ struct block_task
         /// Number of dp_vector_t along M-axis that can be read in a single LDS from the shared A-tile (up to 128b if more than one float)
         LdsVectorDpVectorsA = __NV_STD_MIN(
             ThreadItemsY,
-            __NV_STD_MAX(1, (128 / (__NV_STD_MAX(sizeof(dp_vector_t), sizeof(accum_t)) * 8)))),
+            __NV_STD_MAX(1, (128 / (__NV_STD_MAX(sizeof(dp_vector_t), sizeof(float)) * 8)))),
 
         /// Number of dp_vector_t along N-axis that can be read in a single LDS from the shared B-tile (up to 128b if more than one float)
         LdsVectorDpVectorsB = __NV_STD_MIN(
             ThreadItemsX,
-            __NV_STD_MAX(1, (128 / (__NV_STD_MAX(sizeof(dp_vector_t), sizeof(accum_t)) * 8)))),
+            __NV_STD_MAX(1, (128 / (__NV_STD_MAX(sizeof(dp_vector_t), sizeof(float)) * 8)))),
 
         /// Number of strip-mined LDS vector reads from shared A-tile
         ThreadLdsVectorsA = divide_assert<ThreadItemsY, LdsVectorDpVectorsA>::value,
@@ -112,7 +111,7 @@ struct block_task
         ThreadLdsVectorsB = divide_assert<ThreadItemsX, LdsVectorDpVectorsB>::value,
 
         /// Number of elements in one LDG/STG vector of C-tile
-        ThreadLdgVectorSizeC = __NV_STD_MIN(LdgAlignC, 16) / (sizeof(accum_t)),
+        ThreadLdgVectorSizeC = __NV_STD_MIN(LdgAlignC, 16) / (sizeof(float)),
 
         /// Number of threads in warp
         WarpThreads = 32,
@@ -223,7 +222,7 @@ struct block_task
     int page_idx;
 
     /// Pointer to matrix C
-    accum_t *d_c;
+    float *d_c;
 
 
     /// Matrix height in rows of trans_op(A) and C
@@ -310,7 +309,7 @@ struct block_task
         scratch_storage_t *scratch,
         float *d_a,
         float *d_b,
-        accum_t *d_c,
+        float *d_c,
         int dim_m,
         int dim_n,
         int dim_k,
@@ -410,13 +409,13 @@ struct block_task
                 int c_idx = (grid_raster.block_item_coords.x + thread_item_coords_tile_x) * dim_m +
                     grid_raster.block_item_coords.y + thread_item_coords_tile_y;
 
-                accum_t *my_c = d_c + c_idx;
+                float *my_c = d_c + c_idx;
 
                 #pragma unroll
                 for (int i = 0; i < LdsVectorDpVectorsA; ++i)
                 {
-                    accum_t c_slice = accum_t(0);
-                    accum_t *c_ptr = my_c + i;
+                    float c_slice = float(0);
+                    float *c_ptr = my_c + i;
 
                     if ((grid_raster.block_item_coords.x + thread_item_coords_tile_x) < dim_n &&
                         (grid_raster.block_item_coords.y + thread_item_coords_tile_y + i) < dim_m)

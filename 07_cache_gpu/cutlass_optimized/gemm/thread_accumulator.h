@@ -74,7 +74,7 @@ namespace gemm {
  * functionality prescribed here.
  */
 template <
-    int ThreadItemsY,                   ///< Height of thread tile in accum_t
+    int ThreadItemsY,                   ///< Height of thread tile in float
     int ThreadItemsX,                   ///< Width of thread tile in accum_t
     typename accum_t,                   ///< Accumulator value type
     int ACCUM_BYTES =                   ///< Size in bytes of accum_t

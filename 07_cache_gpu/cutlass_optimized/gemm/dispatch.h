@@ -18,7 +18,6 @@ namespace gemm {
                        float *d_c)               ///< Pointer to matrix C array values
 {
   typedef block_task<
-    float,
     16,
     16,
     4> block_task_t;
