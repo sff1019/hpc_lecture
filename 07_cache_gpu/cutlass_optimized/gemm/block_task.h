@@ -82,9 +82,6 @@ struct block_task
 
     enum
     {
-        /// Whether this is a small, latency-bound tile
-        IsSmallTile = (ThreadItemsY < 4) && (ThreadItemsX < 4),
-
         /// Number of value_t in dp_vector_t
         DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(value_t)>::value,
 
