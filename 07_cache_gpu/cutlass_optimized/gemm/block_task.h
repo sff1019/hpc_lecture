@@ -49,8 +49,7 @@ template <
     typename                    accum_t,                ///< Accumulator value type (matrix C and scalars)
     int                         LdgAlignA,              ///< Alignment (in bytes) for A operand
     int                         LdgAlignB,              ///< Alignment (in bytes) for B operand
-    int                         LdgAlignC,              ///< Alignment (in bytes) for C operand
-    bool                        AllowRaggedTiles        ///< Whether the input matrix's dimensions need not be an even-multiple of the block-wide tile dimensions
+    int                         LdgAlignC              ///< Alignment (in bytes) for C operand
 >
 struct block_task
 {
@@ -168,7 +167,6 @@ struct block_task
       64,                                        // BlockItemsL
       float,                                            // value_t
       16,                                          // MatrixAlignBytes
-      false,                                   // AllowRaggedTiles
       dp_vector_t,                                        // dp_vector_t
       load_algorithm::CongruousCopy>
     block_loader_a_t;
@@ -181,7 +179,6 @@ struct block_task
       64,                                        // BlockItemsL
       float,                                            // value_t
       16,                                          // MatrixAlignBytes
-      false,                                   // AllowRaggedTiles
       dp_vector_t,                                        // dp_vector_t
       load_algorithm::CrosswiseCopy>
     block_loader_b_t;

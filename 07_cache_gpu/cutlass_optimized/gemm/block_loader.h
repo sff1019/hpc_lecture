@@ -101,7 +101,6 @@ template <
     int BlockDpVectorsL,                    ///< Extent of block-wide tile in dp_vector_t along the L-axis (width)
     typename value_t,                       ///< Input matrix value type
     int LeadingDimAlignBytes,               ///< Byte alignment of input matrix leading dimension
-    bool AllowRaggedTiles,                  ///< Whether the input matrix's dimensions need not be an even-multiple of the block-wide tile dimensions
     typename dp_vector_t,                   ///< Dot-product vector type along the K-axis
     load_algorithm::kind_t LoadAlgorithm>   ///< Algorithm for loading a shared tile of KxL matrix data
 struct block_loader
