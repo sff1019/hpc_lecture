@@ -64,7 +64,7 @@ struct grid_raster_strategy
          */
         ColumnMajor,
     };
-:;
+};
 
 
 
@@ -173,7 +173,6 @@ struct grid_raster<
 };
 
 
-
 /******************************************************************************
  * grid_raster (Default specializations)
  ******************************************************************************/
@@ -202,6 +201,7 @@ struct grid_raster<
         TransformB,
         grid_raster_strategy::ColumnMajor>
 {};
+
 
 
 } // namespace gemm

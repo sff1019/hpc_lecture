@@ -8,13 +8,11 @@
 namespace cutlass {
 namespace gemm {
 
-  template <typename epilogue_op_t>
   __global__ void kernel(
                        int m,                      ///< Height in rows of op(A) and C
                        int n,                      ///< Width in columns of op(B) and C
                        int k,                      ///< Width in columns of op(A) and height in rows of op(B)
                        k_split_control k_split,    ///< Abstraction for controlling inter-block k-splitting
-                       epilogue_op_t op,           ///< Epilogue operation to update matrix C
                        float *d_a,               ///< Pointer to matrix A array values
                        float *d_b,               ///< Pointer to matrix B array values
                        float *d_c)               ///< Pointer to matrix C array values
@@ -24,7 +22,6 @@ namespace gemm {
     float,
     16,
     16,
-    epilogue_op_t,
     4,
     false> block_task_t;
 
@@ -37,7 +34,6 @@ namespace gemm {
         d_a,
         d_b,
         d_c,
-        op,
         m,
         n,
         k,
@@ -116,13 +112,10 @@ struct launch_configuration
  * This function also serves as the autotuning entrypoint to evaluate different
  * tuning parameterizations of kernel.
  */
-template <typename epilogue_op_t>
 launch_configuration dispatch(
     int             m,                              ///< Height in rows of op(A) and C
     int             n,                              ///< Width in columns of op(B) and C
     int             k,                              ///< Width in columns of op(A) and height in rows of op(B)
-    float           alpha,
-    float           beta,
     float         *d_a,                           ///< Device pointer to matrix A array values
     float         *d_b,                           ///< Device pointer to matrix B array values
     float         *d_c,                           ///< Device pointer to matrix C array values
@@ -134,7 +127,6 @@ launch_configuration dispatch(
     // Thread block rasterization type
   static const matrix_transform_t::kind_t TransformA = matrix_transform_t::NonTranspose;
   static const matrix_transform_t::kind_t TransformB = matrix_transform_t::NonTranspose;
-  epilogue_op_t epilogue(alpha, beta);
   typedef grid_raster<
     64,
     64,
@@ -161,7 +153,7 @@ launch_configuration dispatch(
                           config.block,
                           config.grid);
   config.split_k = k_split.split_k;
-  gemm::kernel<epilogue_op_t>
+  gemm::kernel
     <<< config.grid,
     config.block,
     dynamic_smem_bytes,
@@ -170,7 +162,6 @@ launch_configuration dispatch(
                n,
                k,
                k_split,
-               epilogue,
                d_a,
                d_b,
                d_c);

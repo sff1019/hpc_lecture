@@ -49,7 +49,6 @@ template <
     typename                    accum_t,                ///< Accumulator value type (matrix C and scalars)
     int                         LdgAlignA,              ///< Alignment (in bytes) for A operand
     int                         LdgAlignB,              ///< Alignment (in bytes) for B operand
-    typename                    epilogue_op_t,          ///< Epilogue operation applied to GEMM
     int                         LdgAlignC,              ///< Alignment (in bytes) for C operand
     bool                        AllowRaggedTiles        ///< Whether the input matrix's dimensions need not be an even-multiple of the block-wide tile dimensions
 >
@@ -239,8 +238,6 @@ struct block_task
     /// Pointer to matrix C
     accum_t *d_c;
 
-    /// Epilogue operation applied to update matrix C
-    epilogue_op_t epilogue_op;
 
     /// Matrix height in rows of trans_op(A) and C
     int dim_m;
@@ -327,7 +324,6 @@ struct block_task
         value_t *d_a,
         value_t *d_b,
         accum_t *d_c,
-        epilogue_op_t epilogue_op,
         int dim_m,
         int dim_n,
         int dim_k,
@@ -336,7 +332,6 @@ struct block_task
         scratch(scratch),
         page_idx(0),
         d_c(d_c),
-        epilogue_op(epilogue_op),
         dim_m(dim_m),
         dim_n(dim_n),
         k_split(k_split),
@@ -415,14 +410,6 @@ struct block_task
         // exclsuive partial-sums
         k_split.wait();
 
-        // Configure epilogue as to whether the thread block is a secondary
-        // accumulator in an inter-block k-splitting scheme
-        if (k_split.is_secondary_accumulator())
-            epilogue_op.set_secondary_accumulator();
-
-        // Whether the addend from C needs loading
-        bool must_init_addend = epilogue_op.must_init_addend();
-
         #pragma unroll
         for (int x = 0; x < ThreadItemsX; ++x)
         {
@@ -449,12 +436,7 @@ struct block_task
                     if ((grid_raster.block_item_coords.x + thread_item_coords_tile_x) < dim_n &&
                         (grid_raster.block_item_coords.y + thread_item_coords_tile_y + i) < dim_m)
                     {
-                        if (must_init_addend)
-                        {
-                            ldg_cg(c_slice, c_ptr);
-                        }
-
-                        c_slice = epilogue_op(accumulator.get(x, y + i), c_slice, c_idx + i);
+                        c_slice = accumulator.get(x, y + i);
 
                         stg_cg(c_ptr, c_slice);
                     }
