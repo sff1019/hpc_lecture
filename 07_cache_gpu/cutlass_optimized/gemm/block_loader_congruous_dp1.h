@@ -48,14 +48,14 @@ namespace gemm {
  * (CongruousCopy + dp1 specialization)
  *
  * Each iteration sequence produces a KxL (height-by-width) block-wide tile of
- * value_t in shared memory.  The layout of the shared block-wide tile is
+ * float in shared memory.  The layout of the shared block-wide tile is
  * a row-major (L-major) tiling of singleton "dp1" dp_vector_t items, where
- * dp_vector_t == value_t.  Its dimensions are:
+ * dp_vector_t == float.  Its dimensions are:
  *    K = BlockDpVectorsK
  *    L = BlockDpVectorsL
  *
  * The data is copied from a corresponding tile of global matrix data whose
- * layout of value_t is also L-major. This constitutes a CongruousCopy
+ * layout of float is also L-major. This constitutes a CongruousCopy
  * between the L-major global tile and the L-major shared tile.
  *
  * NB: Because they are "dp1" singletons, the K-major orientation of
@@ -65,7 +65,7 @@ namespace gemm {
  * without any intermediate {dis|re}assembly.
  *
  * NB: Consecutive threads within a block are mapped in L-major
- * fashion across a first-set of LDG-vectors of dp_vector_t (value_t) within
+ * fashion across a first-set of LDG-vectors of dp_vector_t (float) within
  * their global tile. Successive sets of LDG-vectors are then strip-mined
  * as necessary down the K-axis.  These discontiguous LDG-vectors comprise the
  * thread's "slice" of the block-wide tile.
@@ -74,16 +74,14 @@ template <
     int BlockThreads,           ///< Number of threads in each thread block (blockDim.x)
     int BlockDpVectorsK,        ///< Extent of block-wide tile in dp_vector_t along the K-axis (height)
     int BlockDpVectorsL,        ///< Extent of block-wide tile in dp_vector_t along the L-axis (width)
-    typename value_t,           ///< Input matrix value type
     int LeadingDimAlignBytes   ///< Byte alignment of input matrix leading dimension
 >
 struct block_loader<
     BlockThreads,
     BlockDpVectorsK,
     BlockDpVectorsL,
-    value_t,
     LeadingDimAlignBytes,
-    value_t,                        ///< Dot-product vector type along the K-axis (dp1 specialization)
+    float,                        ///< Dot-product vector type along the K-axis (dp1 specialization)
     load_algorithm::CongruousCopy>  ///< Algorithm for loading a shared tile of KxL matrix data (CongruousCopy specialization)
 {
     //-------------------------------------------------------------------------
@@ -91,12 +89,12 @@ struct block_loader<
     //-------------------------------------------------------------------------
 
     /// Dot-product vector type along the K-axis
-    typedef value_t dp_vector_t;
+    typedef float dp_vector_t;
 
     enum
     {
-        /// Number of value_t in a dp_vector_t
-        DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(value_t)>::value,
+        /// Number of float in a dp_vector_t
+        DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(float)>::value,
 
         /// Number of dp_vector_t in a block-wide tile
         BlockDpVectors = BlockDpVectorsK * BlockDpVectorsL,
@@ -118,7 +116,7 @@ struct block_loader<
         /// Number of dp_vector_t per ldg_vector_t
         LdgVectorDpVectors = ldg_vector_t::VectorItems,
 
-        /// Number of value_t per ldg_vector_t
+        /// Number of float per ldg_vector_t
         LdgVectorItems = LdgVectorDpVectors * DpVectorItems,
 
 
@@ -215,10 +213,10 @@ struct block_loader<
     /// Constructor
     inline __device__
     block_loader(
-        value_t *d_matrix_items,        ///< Input pointer to matrix in value_t
-        int matrix_items_stride_k,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the K-axis
-        int matrix_items_stride_l,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the L-axis
-        int2 matrix_block_item_coords,  ///< value_t coordinates (l, k) of first block-wide tile within the input matrix
+        float *d_matrix_items,        ///< Input pointer to matrix in float
+        int matrix_items_stride_k,      ///< Distance in float within pitched-linear memory between successive coordinates along the K-axis
+        int matrix_items_stride_l,      ///< Distance in float within pitched-linear memory between successive coordinates along the L-axis
+        int2 matrix_block_item_coords,  ///< float coordinates (l, k) of first block-wide tile within the input matrix
         int block_end_item_k)           ///< Thread block's ending coordinate (k) within the input matrix (one-past)
     :
         block_end_ldgvec_k(block_end_item_k),

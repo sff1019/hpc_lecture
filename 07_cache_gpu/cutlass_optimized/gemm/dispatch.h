@@ -19,7 +19,6 @@ namespace gemm {
 {
   typedef block_task<
     float,
-    float,
     16,
     16,
     4> block_task_t;

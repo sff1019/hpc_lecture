@@ -48,20 +48,20 @@ namespace gemm {
  * (CrosswiseCopy specialization)
  *
  * Each iteration sequence produces a KxL (height-by-width) block-wide tile of
- * value_t in shared memory.  The layout of the shared block-wide tile is
+ * float in shared memory.  The layout of the shared block-wide tile is
  * a row-major (L-major) tiling of dp_vector_t items, which are themselves
- * column-major (K-major) vectors of value_t.  Its dimensions are:
- *    K = BlockDpVectorsK * (sizeof(dp_vector_t) / sizeof(value_t)
+ * column-major (K-major) vectors of float.  Its dimensions are:
+ *    K = BlockDpVectorsK * (sizeof(dp_vector_t) / sizeof(float)
  *    L = BlockDpVectorsL
  *
  * The data is copied from a corresponding tile of global matrix data whose
- * layout of value_t is K-major.  This constitutes a CrosswiseCopy between
+ * layout of float is K-major.  This constitutes a CrosswiseCopy between
  * the K-major global tile and the L-major shared tile.
  *
  * NB: The orientation of dp_vector_t components in shared memory is congruous
  * with the global matrix data, so we can use dp_vector_t as the minimum
  * granularity of data transfer without any intermediate {dis|re}assembly
- * of its value_t components.  However, the global and shared memory layouts
+ * of its float components.  However, the global and shared memory layouts
  * of dp_vector_t items are cross-wise with respect to each other, so any
  * further LDG-vectorization of dp_vector_t data requires intermediate
  * disassembly into dp_vector_t components to be stored individually into
@@ -77,14 +77,12 @@ template <
     int BlockThreads,           ///< Number of threads in each thread block (blockDim.x)
     int BlockDpVectorsK,        ///< Extent of block-wide tile in dp_vector_t along the K-axis (height)
     int BlockDpVectorsL,        ///< Extent of block-wide tile in dp_vector_t along the L-axis (width)
-    typename value_t,           ///< Input matrix value type
     int LeadingDimAlignBytes,   ///< Byte alignment of input matrix leading dimension
     typename dp_vector_t>       ///< Dot-product vector type along the K-axis
 struct block_loader<
     BlockThreads,
     BlockDpVectorsK,
     BlockDpVectorsL,
-    value_t,
     LeadingDimAlignBytes,
     dp_vector_t,
     load_algorithm::CrosswiseCopy>  ///< Algorithm for loading a shared tile of KxL matrix data (CrosswiseCopy specialization)
@@ -95,8 +93,8 @@ struct block_loader<
 
     enum
     {
-        /// Number of value_t in a dp_vector_t
-        DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(value_t)>::value,
+        /// Number of float in a dp_vector_t
+        DpVectorItems = divide_assert<sizeof(dp_vector_t), sizeof(float)>::value,
 
         /// Number of dp_vector_t in a block-wide tile
         BlockDpVectors = BlockDpVectorsK * BlockDpVectorsL,
@@ -118,7 +116,7 @@ struct block_loader<
         /// Number of dp_vector_t per ldg_vector_t
         LdgVectorDpVectors = ldg_vector_t::VectorItems,
 
-        /// Number of value_t per ldg_vector_t
+        /// Number of float per ldg_vector_t
         LdgVectorItems = LdgVectorDpVectors * DpVectorItems,
 
 
@@ -212,10 +210,10 @@ struct block_loader<
     /// Constructor
     inline __device__
     block_loader(
-        value_t *d_matrix_items,        ///< Input pointer to matrix in value_t
-        int matrix_items_stride_k,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the K-axis
-        int matrix_items_stride_l,      ///< Distance in value_t within pitched-linear memory between successive coordinates along the L-axis
-        int2 matrix_block_item_coords,  ///< value_t coordinates (l, k) of first block-wide tile within the input matrix
+        float *d_matrix_items,        ///< Input pointer to matrix in float
+        int matrix_items_stride_k,      ///< Distance in float within pitched-linear memory between successive coordinates along the K-axis
+        int matrix_items_stride_l,      ///< Distance in float within pitched-linear memory between successive coordinates along the L-axis
+        int2 matrix_block_item_coords,  ///< float coordinates (l, k) of first block-wide tile within the input matrix
         int block_end_item_k)           ///< Thread block's ending coordinate (k) within the input matrix (one-past)
     :
         block_end_ldgvec_k(block_end_item_k),
