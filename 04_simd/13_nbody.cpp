@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <immintrin.h>
+<<<<<<< HEAD
 
 const int N = 8;
 
@@ -16,6 +17,7 @@ float _mm256_reduce(__m256 vec) {
 
   return reducedvec[0];
 }
+=======
 
 int main() {
   float x[N], y[N], m[N], fx[N], fy[N];
