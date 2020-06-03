@@ -44,9 +44,9 @@ namespace cutlass {
 /**
  * Statically determine if N is a power-of-two
  */
-// template <int N>
-// struct is_pow2 : nv_std::integral_constant<bool, (N & (N - 1)) == 0>
-// {};
+template <int N>
+struct is_pow2 : nv_std::integral_constant<bool, (N & (N - 1)) == 0>
+{};
 
 
 
