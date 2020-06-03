@@ -32,10 +32,6 @@
  * A block-wide task abstraction for computing device-wide GEMM
  */
 
-#include <stdint.h>
-
-#include "../util/util.h"
-
 #include "grid_raster.h"
 #include "block_loader.h"
 #include "k_split_control.h"

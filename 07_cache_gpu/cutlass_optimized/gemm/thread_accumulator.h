@@ -32,7 +32,6 @@
  * Thread-level multiply-accumulate abstraction
  */
 
-#include "../util/util.h"
 #include "dp_accummulate.h"
 
 

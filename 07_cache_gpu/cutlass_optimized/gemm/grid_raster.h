@@ -32,8 +32,6 @@
  * Abstraction for enumerating \p block_task within an input matrix
  */
 
-#include <stdint.h>
-
 #include "../util/util.h"
 
 
@@ -85,28 +83,7 @@ template <
     matrix_transform_t::kind_t      TransformB,     ///< View transform enumerant for matrix B
     grid_raster_strategy::kind_t    RasterStrategy> ///< Strategy for enumerating \p block_task within an input matrix
 struct grid_raster
-{
-    //-------------------------------------------------------------------------
-    // Device API
-    //-------------------------------------------------------------------------
-
-    /// Thread block's base item coordinates (x, y) in matrix C
-    int2 block_item_coords;
-
-    /// Constructor
-    grid_raster();
-
-    /// Whether the thread block base coordinates are out-of-bounds for an m*n matrix C
-    bool is_block_oob(int m, int n);
-
-
-    //-------------------------------------------------------------------------
-    // Grid launch API
-    //-------------------------------------------------------------------------
-
-    /// Compute the kernel grid extents (in thread blocks) for consuming an m*n matrix C
-    static dim3 grid_dims(int m, int n);
-};
+{};
 
 
 

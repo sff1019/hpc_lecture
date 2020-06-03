@@ -32,10 +32,6 @@
  * Abstraction for coordinating inter-block k-splitting
  */
 
-#include <stdint.h>
-
-#include "../util/util.h"
-
 namespace cutlass {
 namespace gemm {
 
@@ -115,16 +111,6 @@ struct k_split_control
         return __NV_STD_MIN(next_start_k, dim_k);
     }
 
-
-    /**
-     * Whether the thread block is a secondary accumulator in an inter-block
-     * k-splitting scheme
-     */
-    inline __device__
-    bool is_secondary_accumulator()
-    {
-        return (blockIdx.z > 0);
-    }
 
 
     /**
@@ -244,35 +230,6 @@ struct k_split_control
         use_semaphore = (grid_dims.z > 1);
     }
 
-
-    /**
-     * Initializer
-     */
-    cudaError_t prepare(
-        cudaStream_t    stream,             ///< CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool            debug_synchronous)  ///< Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console if DEBUG is defined.  Default is \p false.
-
-    {
-        cudaError error = cudaSuccess;
-
-        if (use_semaphore)
-        {
-            int block_threads = 128;
-            int grid_dims = (NumFlagsSplitK + block_threads - 1) / block_threads;
-
-            prepare_kernel<<<grid_dims, block_threads, 0, stream>>>(d_flags);
-
-            // Check for failure to launch
-            if (CUDA_PERROR_DEBUG(error = cudaPeekAtLastError()))
-                return error;
-
-            // Sync the stream if specified to flush runtime errors
-            if (debug_synchronous && (CUDA_PERROR_DEBUG(error = cudaStreamSynchronize(stream))))
-                return error;
-        }
-
-        return error;
-    }
 
 
     /**
