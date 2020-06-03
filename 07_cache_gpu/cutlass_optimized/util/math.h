@@ -44,9 +44,9 @@ namespace cutlass {
 /**
  * Statically determine if N is a power-of-two
  */
-template <int N>
-struct is_pow2 : nv_std::integral_constant<bool, (N & (N - 1)) == 0>
-{};
+// template <int N>
+// struct is_pow2 : nv_std::integral_constant<bool, (N & (N - 1)) == 0>
+// {};
 
 
 
@@ -62,43 +62,6 @@ struct log2_down
     enum { value = log2_down<N, (CurrentVal >> 1), Count + 1>::value };
 };
 
-// Base case
-template <int N, int Count>
-struct log2_down<N, 1, Count>
-{
-    enum { value = Count };
-};
-
-
-
-
-/**
- * Statically determine log2(N), rounded up
- */
-template <int N, int CurrentVal = N, int Count = 0>
-struct log2_up
-{
-    /// Static logarithm value
-    enum { value = log2_up<N, (CurrentVal >> 1), Count + 1>::value };
-};
-
-// Base case
-template <int N, int Count>
-struct log2_up<N, 1, Count>
-{
-    enum { value = ((1 << Count) < N) ? Count + 1 : Count };
-};
-
-
-
-/**
- * Statically estimate sqrt(N) to the nearest power-of-two
- */
-template <int N>
-struct sqrt_est
-{
-    enum { value = 1 << (log2_up<N>::value / 2) };
-};
 
 
 

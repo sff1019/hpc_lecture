@@ -57,26 +57,5 @@ struct int_constant : nv_std::integral_constant<int32_t, V>
 {};
 
 
-/******************************************************************************
- * Uninitialized
- ******************************************************************************/
-
-/**
- * \brief A storage-backing wrapper that allows types with non-trivial constructors to be aliased in unions
- */
-template <typename T>
-struct __align__(16) uninitialized
-{
-    /// Backing storage
-    uint8_t storage[sizeof(T)];
-
-    /// Alias
-    __host__ __device__ __forceinline__ T& alias()
-    {
-        return reinterpret_cast<T&>(*this);
-    }
-};
-
-
 
 } // namespace cutlass

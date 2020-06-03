@@ -32,47 +32,12 @@
  * \brief Debugging and logging functionality
  */
 
-#include <stdio.h>
 
 namespace cutlass {
 
 /******************************************************************************
  * Debug and logging macros
  ******************************************************************************/
-
-/**
- * Formats and prints the given message to stdout
- */
-#if !defined(CUDA_LOG)
-    #if !defined(__CUDA_ARCH__)
-        #define CUDA_LOG(format, ...) printf(format, __VA_ARGS__)
-    #else
-inline __host__ __device__ unsigned get_threadidx_x() { return threadIdx.x; }
-inline __host__ __device__ unsigned get_threadidx_y() { return threadIdx.y; }
-inline __host__ __device__ unsigned get_threadidx_z() { return threadIdx.z; }
-inline __host__ __device__ unsigned get_blockidx_x() { return blockIdx.x; }
-inline __host__ __device__ unsigned get_blockidx_y() { return blockIdx.y; }
-inline __host__ __device__ unsigned get_blockidx_z() { return blockIdx.z; }
-        #define CUDA_LOG(format, ...)                                          \
-            printf("[block (%d,%d,%d), thread (%d,%d,%d)]: " format,           \
-                   get_blockidx_x(), get_blockidx_y(), get_blockidx_z(),       \
-                   get_threadidx_x(), get_threadidx_y(), get_threadidx_z(),    \
-                   __VA_ARGS__);
-    #endif
-#endif
-
-
-/**
- * Formats and prints the given message to stdout only if DEBUG is defined
- */
-#if !defined(CUDA_LOG_DEBUG)
-    #ifdef DEBUG
-        #define CUDA_LOG_DEBUG(format, ...) CUDA_LOG(format, __VA_ARGS__)
-    #else
-        #define CUDA_LOG_DEBUG(format, ...)
-    #endif
-#endif
-
 
 /**
  * \brief The corresponding error message is printed to \p stderr (or \p stdout in device code) along with the supplied source context.

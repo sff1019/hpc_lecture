@@ -32,29 +32,8 @@
  * \brief Utilities for device introspection
  */
 
-#include "debug.h"
-#include "nv_std.h"
-#include "printable.h"
-
 namespace cutlass {
 
-
-/******************************************************************************
- * math_operation_class_t
- *
- * Enumeration to select the appropriate math operation
- *
- * The assumption is multiple math operations may be used to compute GEMM
- * for a given selection of operand and accumulator types.
- *
- ******************************************************************************/
-
-/// Math operation
-enum class math_operation_class_t
-{
-    scalar,                     // scalar (and vector) multiply-accumulate operations
-    matrix                      // Volta tensor operations
-};
 
 /******************************************************************************
  * arch_family_t
@@ -73,35 +52,6 @@ struct arch_family_t
         Maxwell     = 5,
         Volta       = 7,
     };
-
-    /// Enumerant value
-    kind_t kind;
-
-    /// Default constructor
-    arch_family_t() : kind(Unsupported) {}
-
-    /// Copy constructor
-    arch_family_t(const kind_t &other_kind) : kind(other_kind) {}
-
-    /// Cast to kind_t
-    operator kind_t() const { return kind; }
-
-    /// Returns the instance as a string
-    __host__ __device__ inline
-    char const* to_string() const
-    {
-        switch (kind)
-        {
-            case Kepler:    return "Kepler";
-            case Maxwell:   return "Maxwell";
-            case Volta:     return "Volta";
-            case Unsupported:
-            default: return "Unsupported";
-        }
-    }
-
-    /// Insert the formatted instance into the output stream
-    void print(std::ostream& out) const { out << to_string(); }
 
 };
 
@@ -136,68 +86,6 @@ struct arch_family_t
 /******************************************************************************
  * Device introspection
  ******************************************************************************/
-
-/**
- * Empty kernel for querying PTX manifest metadata (e.g., version) for the current device
- */
-template <typename T>
-__global__ void empty_kernel(void) { }
-
-
-
-/**
- * \brief Retrieves the PTX version that will be used on the current device (major * 100 + minor * 10)
- */
-cudaError_t ptx_version(int &version)
-{
-    struct Dummy
-    {
-        /// Type definition of the empty_kernel kernel entry point
-        typedef void (*EmptyKernelPtr)();
-
-        /// Force empty_kernel<void> to be generated if this class is used
-        EmptyKernelPtr Empty()
-        {
-            return empty_kernel<void>;
-        }
-    };
-
-    cudaError_t error = cudaSuccess;
-    do
-    {
-        cudaFuncAttributes empty_kernel_attrs;
-        if (CUDA_PERROR_DEBUG(error = cudaFuncGetAttributes(&empty_kernel_attrs, empty_kernel<void>))) break;
-        version = empty_kernel_attrs.ptxVersion * 10;
-    }
-    while (0);
-
-    return error;
-}
-
-
-/**
- * \brief Retrieves the SM version (major * 100 + minor * 10) for the current device
- */
-cudaError_t get_sm_version(int &sm_version)
-{
-    cudaError_t error = cudaSuccess;
-
-    // Get device ordinal
-    int device_ordinal;
-    if (CUDA_PERROR_DEBUG(error = cudaGetDevice(&device_ordinal)))
-        return error;
-
-    // Fill in SM version
-    int major, minor;
-    if (CUDA_PERROR_DEBUG(error = cudaDeviceGetAttribute(&major, cudaDevAttrComputeCapabilityMajor, device_ordinal)))
-        return error;
-    if (CUDA_PERROR_DEBUG(error = cudaDeviceGetAttribute(&minor, cudaDevAttrComputeCapabilityMinor, device_ordinal)))
-        return error;
-    sm_version = major * 100 + minor * 10;
-
-    return error;
-}
-
 
 /**
  * \brief Retrieves the count for the current device

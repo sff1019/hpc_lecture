@@ -32,9 +32,6 @@
  * \brief I/O device intrinsics
  */
 
-#include <stdint.h>
-#include <cuda_fp16.h>
-
 #include "nv_std.h"
 #include "math.h"
 
@@ -51,10 +48,6 @@ namespace cutlass {
  * Base aligned storage for IO vector
  */
 template <typename value_t, int VectorItems, int AlignBytes> struct io_vector_base;
-template <typename value_t, int VectorItems> struct __align__(1) io_vector_base<value_t, VectorItems, 1> { value_t buff[VectorItems]; };
-template <typename value_t, int VectorItems> struct __align__(2) io_vector_base<value_t, VectorItems, 2> { value_t buff[VectorItems]; };
-template <typename value_t, int VectorItems> struct __align__(4) io_vector_base<value_t, VectorItems, 4> { value_t buff[VectorItems]; };
-template <typename value_t, int VectorItems> struct __align__(8) io_vector_base<value_t, VectorItems, 8> { value_t buff[VectorItems]; };
 template <typename value_t, int VectorItems> struct __align__(16) io_vector_base<value_t, VectorItems, 16> { value_t buff[VectorItems]; };
 
 
@@ -132,69 +125,6 @@ struct io_vector <
     }
 };
 
-
-/**
- * IO vector (specialization for VectorItems > 4)
- *
- * NB: Workaround for NVCC not generating 128-bit loads/stores for aligned
- * structures having component types < 32b
- */
-template <
-    typename value_t,
-    int MaxVectorItems,
-    int MaxAlignBytes,
-    int _AlignBytes,
-    int _VectorItems>
-struct io_vector <
-    value_t,
-    MaxVectorItems,
-    MaxAlignBytes,
-    _AlignBytes,
-    _VectorItems,
-    true>
-:
-    io_vector_base<value_t, _VectorItems, _AlignBytes>
-{
-    enum
-    {
-        VectorItems = _VectorItems,
-        AlignBytes = _AlignBytes
-    };
-
-    static_assert(is_pow2<AlignBytes>::value, "I/O vector alignment must be a power-of-two.");
-    static_assert((AlignBytes <= 16), "I/O vector alignment must <= 16B.");
-
-    typedef typename nv_std::conditional<(AlignBytes == 8),
-            uint2,  // Use 8B load
-            uint4>  // Use 16B load
-        ::type align_t;
-
-    inline __device__
-    void load(const io_vector *ptr)
-    {
-        *reinterpret_cast<align_t*>(this) = *reinterpret_cast<const align_t*>(ptr);
-    }
-
-    inline __device__
-    void load(const value_t *ptr)
-    {
-        *reinterpret_cast<align_t*>(this) = *reinterpret_cast<const align_t*>(ptr);
-    }
-
-
-    inline __device__
-    void store(io_vector *ptr) const
-    {
-        *reinterpret_cast<align_t*>(ptr) = *reinterpret_cast<const align_t*>(this);
-    }
-
-    inline __device__
-    void store(value_t *ptr) const
-    {
-        *reinterpret_cast<align_t*>(ptr) = *reinterpret_cast<const align_t*>(this);
-    }
-
-};
 
 
 
@@ -387,70 +317,6 @@ struct io_cast
 };
 
 
-/// Provides the type for which to reinterpret-cast a vector of 1B types
-template <
-    typename value_t,
-    int IoVecDim>
-struct io_cast<value_t, IoVecDim, 1>
-{
-    typedef typename nv_std::conditional<
-            (IoVecDim < 2),
-            int8_t[1],                                 // Use 8b load
-            typename nv_std::conditional<
-                (IoVecDim < 4),
-                int16_t[1],                            // Use 16b load
-                int32_t[IoVecDim / 4]>::type>::type    // Use up to 128b load
-        type;
-};
-
-
-/// Provides the type for which to reinterpret-cast a vector of 2B types
-template <
-    typename value_t,
-    int IoVecDim>
-struct io_cast<value_t, IoVecDim, 2>
-{
-    typedef typename nv_std::conditional<
-            (IoVecDim < 2),
-            int16_t[1],                                // Use 16b load
-            int32_t[IoVecDim / 2]>::type               // Use up to 128b load
-        type;
-};
-
-
-
-/******************************************************************************
- * ldg_cg intrinsics
- ******************************************************************************/
-
-/// Load from global (cache-global modifier)
-template <typename value_t, typename ptr_t>
-inline __device__
-void ldg_cg(
-    value_t &dest,
-    ptr_t d_in)
-{
-    // Cast dest to a different array type if necessary
-    ldg_cg_internal(
-        reinterpret_cast<typename io_cast<value_t, 1>::type &>(dest),
-        d_in);
-}
-
-/// Load from global (cache-global modifier)
-template <typename value_t, int IoVecDim, typename ptr_t>
-inline __device__
-void ldg_cg(
-    value_t (&dest)[IoVecDim],
-    ptr_t d_in)
-{
-    static_assert(is_pow2<IoVecDim>::value, "I/O vectors must be a power-of-two.");
-
-    // Cast dest to a different array type if necessary
-    ldg_cg_internal(
-        reinterpret_cast<typename io_cast<value_t, IoVecDim>::type &>(dest),
-        d_in);
-}
-
 
 /******************************************************************************
  * stg_cg intrinsics
@@ -468,23 +334,6 @@ void stg_cg(
         dest,
         reinterpret_cast<const typename io_cast<value_t, 1>::type &>(src));
 }
-
-/// Store to global (cache-global modifier)
-template <typename ptr_t, int IoVecDim, typename value_t>
-inline __device__
-void stg_cg(
-    ptr_t dest,
-    const value_t (&src)[IoVecDim])
-{
-    static_assert(is_pow2<IoVecDim>::value, "I/O vectors must be a power-of-two.");
-
-    // Cast src to a different array type if necessary
-    stg_cg_internal(
-        dest,
-        reinterpret_cast<const typename io_cast<value_t, IoVecDim>::type &>(src));
-}
-
-
 
 
 
