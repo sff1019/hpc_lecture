@@ -178,9 +178,6 @@ struct block_loader<
     /// Input pointer to matrix in ldg_vector_t
     ldg_vector_t *d_matrix_ldgvecs;
 
-    /// Thread block's ending ldg_vector_t coordinate (k) within the input matrix (one-past)
-    int block_end_ldgvec_k;
-
     /// Predicate bits for guarding ldg_vector_t loads within "whole-k" block-wide tiles
     predicate_mask_t guard;
 
@@ -216,7 +213,6 @@ struct block_loader<
         int2 matrix_block_item_coords,  ///< float coordinates (l, k) of first block-wide tile within the input matrix
         int block_end_item_k)           ///< Thread block's ending coordinate (k) within the input matrix (one-past)
     :
-        block_end_ldgvec_k(block_end_item_k),
         guard(0),
         residue_guard(0)
     {
