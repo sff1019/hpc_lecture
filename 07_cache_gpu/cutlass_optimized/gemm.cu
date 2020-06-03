@@ -6,7 +6,6 @@
 #define DEBUG
 
 #include <gemm/dispatch.h>
-#include <gemm/epilogue_function.h>
 #include "util/matrix.h"
 #include "util/timer.h"
 
