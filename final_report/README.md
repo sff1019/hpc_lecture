@@ -14,4 +14,21 @@ Currently Loaded Modulefiles:
 ```
 
 # Results (plot)
+## Original
+<p align="center">
+  <img src="https://github.com/sff1019/hpc_lecture/blob/master/final_report/original_nt700.png?raw=true" alt="Original result"/>
+</p>
+src: original_nt.700.png
+
 ## C++
+<p align="center">
+  <img src="https://github.com/sff1019/hpc_lecture/blob/master/final_report/cpp_nt700.png?raw=true" alt="C++ result"/>
+</p>
+src: cpp_nt.700.png
+
+## CUDA
+<p align="center">
+  <img src="https://github.com/sff1019/hpc_lecture/blob/master/final_report/cu_nt700.png?raw=true" alt="CUDA result"/>
+</p>
+
+src: cu_nt.700.png
