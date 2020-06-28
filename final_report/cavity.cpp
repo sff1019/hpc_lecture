@@ -1,9 +1,6 @@
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <math.h>
-#include <string>
-#include <vector>
 
 using namespace std;
 
